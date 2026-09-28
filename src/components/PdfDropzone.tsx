@@ -7,9 +7,7 @@ interface Props {
 
 function pickPdfs(list: FileList | null): File[] {
   if (!list) return [];
-  return Array.from(list).filter(
-    (f) => f.type === 'application/pdf' || /\.pdf$/i.test(f.name),
-  );
+  return Array.from(list).filter((f) => /\.(pdf|csv)$/i.test(f.name));
 }
 
 export function PdfDropzone({ onFiles, disabled }: Props) {
@@ -50,12 +48,12 @@ export function PdfDropzone({ onFiles, disabled }: Props) {
         disabled ? 'cursor-default opacity-50' : '',
       ].join(' ')}
     >
-      <p className="text-lg text-[#F2F2F2]">PDF들을 여기에 드롭</p>
+      <p className="text-lg text-[#F2F2F2]">PDF 또는 CSV를 여기에 드롭</p>
       <p className="text-sm text-[#8A8A8A]">또는 클릭해서 파일 선택</p>
       <input
         ref={inputRef}
         type="file"
-        accept="application/pdf,.pdf"
+        accept=".pdf,.csv,application/pdf,text/csv"
         multiple
         className="hidden"
         onChange={onChange}

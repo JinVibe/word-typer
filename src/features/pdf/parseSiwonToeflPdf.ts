@@ -164,7 +164,7 @@ function fileStem(name: string): string {
 }
 
 export async function parseSiwonToeflPdf(file: File, deckId: string): Promise<FileParseResult> {
-  const result: FileParseResult = { file: file.name, words: [], warnings: [] };
+  const result: FileParseResult = { file: file.name, expected: WORDS_PER_FILE, words: [], warnings: [] };
 
   let pages: PageText[];
   try {

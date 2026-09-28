@@ -1,11 +1,9 @@
 import type { FileParseResult } from '../../types/parse';
-import { WORDS_PER_FILE } from './parseSiwonToeflPdf';
-
 export type FileStatus = 'ok' | 'warn' | 'error';
 
 export function fileStatus(r: FileParseResult): FileStatus {
   if (r.error) return 'error';
-  if (r.words.length !== WORDS_PER_FILE) return 'warn';
+  if (r.expected !== undefined && r.words.length !== r.expected) return 'warn';
   return 'ok';
 }
 

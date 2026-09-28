@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PdfDropzone } from '../components/PdfDropzone';
 import { ParseResult } from '../components/ParseResult';
 import { parseSiwonToeflPdf } from '../features/pdf/parseSiwonToeflPdf';
+import { parseVocabCsv } from '../features/csv/parseVocabCsv';
 import { totalWords } from '../features/pdf/validateParseResult';
 import { MAIN_DECK_ID, appendToDeck, replaceDeck } from '../features/deck/deckService';
 import { sortFilesNaturally } from '../utils/naturalSort';
@@ -27,7 +28,12 @@ export function ImportPage() {
     const out: FileParseResult[] = [];
     for (let i = 0; i < files.length; i++) {
       setProgressText(`${files[i].name} 읽는 중… (${i + 1}/${files.length})`);
-      out.push(await parseSiwonToeflPdf(files[i], MAIN_DECK_ID));
+      const f = files[i];
+      out.push(
+        /\.csv$/i.test(f.name)
+          ? await parseVocabCsv(f, MAIN_DECK_ID)
+          : await parseSiwonToeflPdf(f, MAIN_DECK_ID),
+      );
     }
     setResults(out);
     setPhase('preview');
@@ -63,11 +69,11 @@ export function ImportPage() {
 
       {phase === 'idle' && (
         <>
-          <p className="text-lg text-[#8A8A8A]">PDF 파일을 넣어주세요.</p>
+          <p className="text-lg text-[#8A8A8A]">PDF 또는 CSV 파일을 넣어주세요.</p>
           <PdfDropzone onFiles={onFiles} />
           <p className="text-xs text-[#5a5a5a]">
-            파일은 서버로 전송되지 않고 브라우저 안에서만 읽습니다. 각 PDF 상단 표의 1~20번 단어와 뜻만
-            저장합니다.
+            파일은 서버로 전송되지 않고 브라우저 안에서만 읽습니다. PDF는 상단 표의 1~20번 단어와 뜻만,
+            CSV는 <code>english,korean</code> 두 열을 읽습니다.
           </p>
         </>
       )}
