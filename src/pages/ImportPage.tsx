@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { NavBar } from '../components/NavBar';
 import { PdfDropzone } from '../components/PdfDropzone';
 import { ParseResult } from '../components/ParseResult';
 import { parseSiwonToeflPdf } from '../features/pdf/parseSiwonToeflPdf';
@@ -59,12 +60,14 @@ export function ImportPage() {
   const total = totalWords(results);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-16">
+    <>
+    <NavBar />
+    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 pt-20 pb-16">
       <header className="flex items-baseline justify-between">
-        <Link to="/" className="font-mono text-xl">
-          TypeVoca
-        </Link>
-        {append && <span className="text-xs text-[#8A8A8A]">기존 단어장에 추가</span>}
+        <h1 className="text-xl">가져오기</h1>
+        <span className="text-xs text-[#8A8A8A]">
+          {append ? '기존 단어장에 추가 (같은 파일명은 덮어씀)' : '새 단어장으로 교체 (진행 위치 초기화)'}
+        </span>
       </header>
 
       {phase === 'idle' && (
@@ -105,5 +108,6 @@ export function ImportPage() {
         </>
       )}
     </main>
+    </>
   );
 }

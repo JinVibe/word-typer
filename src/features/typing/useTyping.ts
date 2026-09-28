@@ -11,13 +11,26 @@ interface Options {
   onPrev: () => void;
   onNext: () => void;
   onEscape: () => void;
+  /** 숫자 1: 아는 단어로 표시 */
+  onMarkKnown?: () => void;
+  /** 숫자 2: 어려운 단어 토글 */
+  onToggleHard?: () => void;
 }
 
 /**
  * 전역 keydown listener. input box 없이 페이지 진입 즉시 타이핑할 수 있다.
  * 완료 후 다음 단어로 넘어가면 부모가 target을 바꾸고, 그때 typed는 초기화된다.
  */
-export function useTyping({ target, enabled, onComplete, onPrev, onNext, onEscape }: Options) {
+export function useTyping({
+  target,
+  enabled,
+  onComplete,
+  onPrev,
+  onNext,
+  onEscape,
+  onMarkKnown,
+  onToggleHard,
+}: Options) {
   const [typed, setTyped] = useState('');
   const typosRef = useRef(0);
   const doneRef = useRef(false);
@@ -63,6 +76,14 @@ export function useTyping({ target, enabled, onComplete, onPrev, onNext, onEscap
           e.preventDefault();
           onEscape();
           return;
+        case '1':
+          e.preventDefault();
+          onMarkKnown?.();
+          return;
+        case '2':
+          e.preventDefault();
+          onToggleHard?.();
+          return;
         case 'Process': // 한글 IME 조합 중
           return;
       }
@@ -75,7 +96,7 @@ export function useTyping({ target, enabled, onComplete, onPrev, onNext, onEscap
         return t + e.key;
       });
     },
-    [enabled, target, onPrev, onNext, onEscape],
+    [enabled, target, onPrev, onNext, onEscape, onMarkKnown, onToggleHard],
   );
 
   useEffect(() => {

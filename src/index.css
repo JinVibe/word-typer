@@ -55,3 +55,12 @@ body {
     opacity: 0;
   }
 }
+
+/* 홈 카드 */
+.card {
+  @apply block rounded-lg border border-[#222] bg-[#151515] p-5 transition-colors hover:border-[#444] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8A8A8A];
+}
+
+kbd {
+  @apply rounded border border-[#333] bg-[#1a1a1a] px-1 font-mono text-[10px] text-[#8A8A8A];
+}
