@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+.DS_Store
+
+# 학습 자료(PDF)와 추출 데이터는 절대 커밋하지 않는다
+*.pdf
+/data
+.scratch
+*.tsbuildinfo
