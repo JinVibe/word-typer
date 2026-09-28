@@ -6,7 +6,8 @@ import { ParseResult } from '../components/ParseResult';
 import { parseSiwonToeflPdf } from '../features/pdf/parseSiwonToeflPdf';
 import { parseVocabCsv } from '../features/csv/parseVocabCsv';
 import { totalWords } from '../features/pdf/validateParseResult';
-import { MAIN_DECK_ID, appendToDeck, replaceDeck } from '../features/deck/deckService';
+import { MAIN_DECK_ID, addBuiltinWords, appendToDeck, replaceDeck, type AddBuiltinResult } from '../features/deck/deckService';
+import { TOEFL_CORE, TOEFL_CORE_SOURCE } from '../data/toeflCore';
 import { sortFilesNaturally } from '../utils/naturalSort';
 import { settings } from '../utils/settings';
 import type { FileParseResult } from '../types/parse';
@@ -22,6 +23,13 @@ export function ImportPage() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [progressText, setProgressText] = useState('');
   const [results, setResults] = useState<FileParseResult[]>([]);
+  const [builtin, setBuiltin] = useState<'idle' | 'adding' | AddBuiltinResult>('idle');
+
+  const onAddBuiltin = async () => {
+    setBuiltin('adding');
+    const r = await addBuiltinWords(TOEFL_CORE, TOEFL_CORE_SOURCE);
+    setBuiltin(r);
+  };
 
   const onFiles = async (picked: File[]) => {
     const files = sortFilesNaturally(picked);
@@ -78,6 +86,38 @@ export function ImportPage() {
             파일은 서버로 전송되지 않고 브라우저 안에서만 읽습니다. PDF는 상단 표의 1~20번 단어와 뜻만,
             CSV는 <code>english,korean</code> 두 열을 읽습니다.
           </p>
+
+          <section className="mt-6 rounded-lg border border-[#222] bg-[#151515] p-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm">내장 TOEFL 핵심 단어 {TOEFL_CORE.length}개</p>
+                <p className="mt-1 text-xs text-[#5a5a5a]">
+                  AWL과 주요 TOEFL 대비 목록에 공통으로 나오는 고빈도 어휘. 이미 있는 영어 단어는 건너뜁니다.
+                </p>
+              </div>
+              <button
+                onClick={onAddBuiltin}
+                disabled={builtin === 'adding'}
+                className="btn-primary px-4 py-2 text-sm disabled:opacity-40"
+              >
+                {builtin === 'adding' ? '추가 중…' : '단어장에 추가'}
+              </button>
+            </div>
+            {typeof builtin === 'object' && (
+              <p className="mt-4 text-sm text-[#8A8A8A]">
+                {builtin.added}개 추가됨
+                {builtin.skipped > 0 && <> · 이미 있어서 건너뛴 단어 {builtin.skipped}개</>}
+                {builtin.added > 0 && (
+                  <>
+                    {' · '}
+                    <button onClick={() => navigate(`/study/${MAIN_DECK_ID}`)} className="underline hover:text-[#F2F2F2]">
+                      이어서 치기
+                    </button>
+                  </>
+                )}
+              </p>
+            )}
+          </section>
         </>
       )}
 

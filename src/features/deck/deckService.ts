@@ -131,3 +131,76 @@ export async function deleteVocabulary(id: string): Promise<void> {
     }
   });
 }
+
+export interface AddBuiltinResult {
+  added: number;
+  skipped: number;
+}
+
+/**
+ * 내장 단어셋을 단어장에 추가한다. 이미 있는 영어 단어(대소문자 무시)는 건너뛴다.
+ * 단어장이 없으면 새로 만든다. 진행 위치는 유지.
+ */
+export async function addBuiltinWords(
+  list: ReadonlyArray<readonly [string, string]>,
+  sourceFile: string,
+): Promise<AddBuiltinResult> {
+  const ts = now();
+  let added = 0;
+  let skipped = 0;
+
+  await db.transaction('rw', db.vocabularies, db.decks, db.studyProgress, async () => {
+    const existing = await db.vocabularies.where('deckId').equals(MAIN_DECK_ID).toArray();
+    const have = new Set(existing.map((v) => v.word.trim().toLowerCase()));
+    const prevFromSource = existing.filter((v) => v.sourceFile === sourceFile);
+    let order = prevFromSource.reduce((m, v) => Math.max(m, v.order), 0);
+
+    const rows: Vocabulary[] = [];
+    for (const [word, meaning] of list) {
+      const key = word.trim().toLowerCase();
+      if (have.has(key)) {
+        skipped++;
+        continue;
+      }
+      have.add(key);
+      order++;
+      rows.push({
+        id: `${sourceFile}-${order}`,
+        deckId: MAIN_DECK_ID,
+        sourceFile,
+        sourcePage: Math.ceil(order / 20),
+        order,
+        word: word.trim(),
+        meaning: meaning.trim(),
+        status: 'normal',
+        typedCount: 0,
+        typoCount: 0,
+      });
+      added++;
+    }
+    if (rows.length) await vocabularyRepository.bulkPut(rows);
+
+    const total = await db.vocabularies.where('deckId').equals(MAIN_DECK_ID).count();
+    const deck = await deckRepository.get(MAIN_DECK_ID);
+    if (deck) {
+      await deckRepository.put({
+        ...deck,
+        sourceFiles: Array.from(new Set([...deck.sourceFiles, sourceFile])).sort(naturalCompare),
+        wordCount: total,
+        updatedAt: ts,
+      });
+    } else {
+      await deckRepository.put({
+        id: MAIN_DECK_ID,
+        name: MAIN_DECK_NAME,
+        sourceFiles: [sourceFile],
+        wordCount: total,
+        createdAt: ts,
+        updatedAt: ts,
+      });
+      await deckRepository.putProgress(emptyProgress(MAIN_DECK_ID, 'all'));
+    }
+  });
+
+  return { added, skipped };
+}
