@@ -5,9 +5,10 @@ import { MAIN_DECK_ID, resetProgress } from '../features/deck/deckService';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const deck = useLiveQuery(() => db.decks.get(MAIN_DECK_ID));
+  // get()은 없을 때 undefined를 돌려주므로, 로딩 중과 구분하기 위해 null로 바꾸고 기본값은 'loading'으로 둔다.
+  const deck = useLiveQuery(() => db.decks.get(MAIN_DECK_ID).then((d) => d ?? null), [], 'loading' as const);
   const progress = useLiveQuery(() => db.progress.get(MAIN_DECK_ID));
-  const loading = deck === undefined;
+  const loading = deck === 'loading';
 
   const onRestart = async () => {
     if (!confirm('진행 위치를 처음으로 되돌릴까요? 단어장은 그대로 유지됩니다.')) return;
